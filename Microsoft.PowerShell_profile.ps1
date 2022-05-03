@@ -4,6 +4,7 @@ $ShortWay = @{
     'j' = 'z'
     's' = 'Select-Object'
     'vi' = 'vim'
+    'cc' = 'clear-host'
 }
 $ShortWay.Keys | ForEach-Object { Set-Alias $_ $ShortWay.$_}
 
@@ -83,17 +84,6 @@ function OnViModeChange {
     }
 }
 # set prompt function
-function Prompt {
-    $color = Get-Random -Min 1 -Max 16
-    $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
-    $principal = [Security.Principal.WindowsPrincipal]$identity
-    $adminRole = [Security.Principal.WindowsBuiltInRole]::Administrator
-    $var = $principal.IsInRole($adminRole) ? "#" : "$"
-    Write-Host "`n[$pwd]`n" -NoNewline
-    Write-Host $var -NoNewline -ForegroundColor  $color
-    $host.UI.RawUI.WindowTitle = "$pwd"
-    return " "
-}
 
 # Set key function
 Set-PSReadLineKeyHandler -Chord Tab -function MenuComplete
@@ -103,3 +93,33 @@ Set-PSReadLineKeyHandler -Chord Ctrl+A,Ctrl+a -Function SelectAll
 # import some modules
 $module = @('Pscx','posh-git','C:\ProgramData\chocolatey\helpers\chocolateyProfile.psm1')
 $module |  import-module
+
+# gitpromptsettings
+$GitPromptSettings.DefaultPromptPath = ''
+$GitPromptSettings.DefaultPromptSuffix = ''
+$GitPromptSettings.DefaultPromptWriteStatusFirst = $true
+
+function Prompt {
+    $Status = (Get-Location).Path
+    $HomePath = 'C:\Users\Kepa\'
+    if($Status.IndexOf("$HomePath") -eq 0){
+        $Status = $Status.Replace("$HomePath","~\")
+    }
+    if (test-path .git){
+        $GitStatus = & $GitPromptScriptBlock
+        $Status = "[$Status]","$GitStatus" -join ''
+    }
+    else {
+        $Status = "[$Status]"
+    }
+    $color =  (2,3,(5..12),14,15) | Get-Random
+    $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
+    $principal = [Security.Principal.WindowsPrincipal]$identity
+    $adminRole = [Security.Principal.WindowsBuiltInRole]::Administrator
+    $var = $principal.IsInRole($adminRole) ? "#" : "$"
+    Write-Host "`n$Status`n" -NoNewline
+    Write-Host $var -NoNewline -ForegroundColor  $color
+    $host.UI.RawUI.WindowTitle = "$Path"
+    return " "
+}
+

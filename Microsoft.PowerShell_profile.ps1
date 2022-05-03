@@ -1,4 +1,4 @@
-# set alias for command
+# set alias
 $ShortWay = @{
     'IP' = 'Get-IPInfo'
     'j' = 'z'
@@ -7,7 +7,7 @@ $ShortWay = @{
 }
 $ShortWay.Keys | ForEach-Object { Set-Alias $_ $ShortWay.$_}
 
-# warp some command
+# wrap some commands
 function 2ico { magick $args[0] -set filename:name '%t' -resize '128x128>' '%[filename:name].ico'} 
 function Get-VideoInfo { youtube-dl $args[0] --write-sub --write-thumbnail --skip-download --quiet }
 function cs { choco search @args -r}
@@ -54,6 +54,7 @@ function cout {
  }
 
 function compress { tinypng.exe compress $args[0] }
+
 # set psrealine option
 $PSOption = @{
     PredictionSource = 'HistoryAndPlugin'
@@ -93,6 +94,7 @@ function Prompt {
     $host.UI.RawUI.WindowTitle = "$pwd"
     return " "
 }
+
 # Set key function
 Set-PSReadLineKeyHandler -Chord Tab -function MenuComplete
 Set-PSReadLineKeyHandler -Chord Ctrl+b,Ctrl+B -Function DeleteLine

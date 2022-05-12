@@ -1,7 +1,7 @@
 # set alias
 $ShortWay = @{
     'IP' = 'Get-IPInfo'
-    'j' = 'z'
+    'j' = 'Invoke-ZLocation'
     's' = 'Select-Object'
     'vi' = 'vim'
     'cc' = 'clear-host'
@@ -31,7 +31,7 @@ function csi {
            break
         }
         { $_ -ge 31} { 
-            Write-host 'Too Many Items'
+            'Too Many Items'
             break
         }
         Default {
@@ -50,12 +50,24 @@ function cout {
         choco upgrade $SelectApp -y
     }
     else {
-        Write-Host "No app need to update"
+        "No app need to update"
     }
  }
 
 function compress { tinypng.exe compress $args[0] }
-
+function open { explorer.exe $pwd }
+function Set-SURL ([string]$path, [string]$url) {
+    curl --location --request POST "https://link.mirtle.org" -H "x-preshared-key: $env:CurlCfKey" -H "Content-Type: application/x-www-form-urlencoded" --data-urlencode "url=$url" --data-urlencode "path=$path" -S
+    if ($?){
+        Set-Clipboard "https://link.mirtle.org/$path"
+    }
+}
+function Remove-SURL([string]$path){
+    curl --location --request DELETE "https://link.mirtle.org/$path" -H "x-preshared-key: $env:CurlCfKey" -S
+}
+function Get-SURL([string]$path){
+    curl --location --request GET "https://link.mirtle.org/$path" -H "x-preshared-key: $env:CurlCfKey" -S
+}
 # set psrealine option
 $PSOption = @{
     PredictionSource = 'HistoryAndPlugin'
@@ -98,28 +110,27 @@ $module |  import-module
 $GitPromptSettings.DefaultPromptPath = ''
 $GitPromptSettings.DefaultPromptSuffix = ''
 $GitPromptSettings.DefaultPromptWriteStatusFirst = $true
+# is admin
+$principal = [Security.Principal.WindowsPrincipal]([Security.Principal.WindowsIdentity]::GetCurrent())
+$IsAdmin = $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 
 function Prompt {
     $Status = (Get-Location).Path
-    $HomePath = 'C:\Users\Kepa\'
-    if($Status.IndexOf("$HomePath") -eq 0){
-        $Status = $Status.Replace("$HomePath","~\")
+    $host.UI.RawUI.WindowTitle = "$Status"
+    if($Status.IndexOf("${home}\") -eq 0){
+        $Status = $Status.Replace("$home","~")
     }
-    if (test-path .git){
+    if (Test-path .git){
         $GitStatus = & $GitPromptScriptBlock
         $Status = "[$Status]","$GitStatus" -join ''
     }
     else {
         $Status = "[$Status]"
     }
-    $color =  (2,3,(5..12),14,15) | Get-Random
-    $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
-    $principal = [Security.Principal.WindowsPrincipal]$identity
-    $adminRole = [Security.Principal.WindowsBuiltInRole]::Administrator
-    $var = $principal.IsInRole($adminRole) ? "#" : "$"
+    $color =  (2,3,(6..12),14,15) | Get-Random
+    $var = $IsAdmin ? "#" : "$"
     Write-Host "`n$Status`n" -NoNewline
     Write-Host $var -NoNewline -ForegroundColor  $color
-    $host.UI.RawUI.WindowTitle = "$Path"
     return " "
 }
-
+function ~{ Set-Location $home}
